@@ -12,4 +12,4 @@ rm -f "$squash_pygame"
 chmod -R 777 EMUELEC
 cd EMUELEC
 ./instalador.sh
-./coin.sh
+./coin.py
