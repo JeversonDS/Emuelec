@@ -2,6 +2,7 @@
 # Curitiba 28 de Setembro de 2025.
 # Editor: Jeverson D. da Silva   ///@JCGAMESCLASSICOS...
 
+mkdir -p /storage/.local
 url=https://github.com/JeversonDS/Emuelec/releases/download/v1.0/python-pygame.zip
 squash_pygame=$(basename "$url")
 
