@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Rápido: Desmontar e Montar o Arquivo SYSTEM do EmuELEC</title>
+    <!-- Carregamento do Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuração de fonte global e cores escuras para simular o tema GitHub Dark */
+        :root {
+            --github-bg: #0d1117; /* Fundo principal escuro */
+            --github-card: #161b22; /* Cartões e blocos */
+            --github-code: #1f242c; /* Fundo de código */
+            --github-text: #c9d1d9; /* Texto claro */
+            --github-accent: #238636; /* Cor de acento (verde GitHub) */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--github-bg);
+            color: var(--github-text);
+        }
+        .container {
+            max-width: 960px;
+        }
+        .code-block {
+            background-color: var(--github-code);
+            border: 1px solid #30363d;
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        /* Estilo para comandos importantes */
+        .command-line {
+            font-family: 'Consolas', 'Monaco', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .accent-text {
+            color: #58a6ff; /* Azul para variáveis */
+            font-weight: 600;
+        }
+        .warning-box {
+            background-color: #6d1b28; /* Vermelho escuro para alerta */
+            border-left: 4px solid #f85149;
+        }
+        
+        /* Estilo para o botão de cópia */
+        .copy-button {
+            color: var(--github-text);
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-button:hover {
+            color: white;
+            background-color: #30363d;
+        }
+
+        .copy-success {
+            color: var(--github-accent) !important;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="container mx-auto">
+        <header class="mb-8 p-4 bg-gray-800 rounded-lg shadow-xl">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">
+                ⚙️ Hacking do EmuELEC: Guia SquashFS
+            </h1>
+            <p class="text-gray-400">
+                Processo de 5 passos para desmontar, modificar e recompactar o arquivo **SYSTEM** (que é o SquashFS principal) do EmuELEC.
+            </p>
+        </header>
+
+        <!-- AVISO CRÍTICO -->
+        <div class="warning-box p-4 rounded-lg mb-8 text-sm sm:text-base">
+            <h2 class="font-bold text-lg mb-2 text-white">⚠️ ATENÇÃO: Pré-requisitos e Risco</h2>
+            <ul class="list-disc list-inside space-y-1 ml-4 text-gray-200">
+                <li>Você deve executar este processo em um ambiente **Linux**.</li>
+                <li>Você deve ter os pacotes essenciais instalados. Se o comando <code class="font-mono">fakeroot</code> falhar, execute:
+                    <code class="font-mono block mt-1">sudo apt install squashfs-tools fakeroot</code></li>
+                <li>O uso de <code class="font-mono">fakeroot</code> é **CRÍTICO** para preservar permissões de root.</li>
+            </ul>
+        </div>
+
+        <!-- Passo a Passo -->
+        <div id="steps-container" class="space-y-8">
+
+            <!-- Passo 1: Diagnóstico e Engenharia Reversa (CRÍTICO) -->
+            <section>
+                <h2 class="text-2xl font-bold mb-4 text-white">1. Diagnóstico: Confirmação dos Parâmetros (JÁ COMPLETO)</h2>
+                <p class="mb-3 text-gray-400">
+                    Você já obteve a informação crítica. Seus parâmetros são:
+                </p>
+                <div class="code-block relative p-4 group">
+                    <button class="copy-button absolute top-2 right-2 p-2 rounded-md" onclick="copyCode(this)">
+                        <svg class="w-5 h-5 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-copy-icon><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0a2 2 0 002 2h2m-4 0V3a1 1 0 00-1-1H9a1 1 0 00-1 1v4m-2 2h8a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v2z"></path></svg>
+                        <span class="sr-only">Copiar comando</span>
+                    </button>
+                    <pre class="command-line text-green-300" data-code-target>$ unsquashfs -s SYSTEM | grep -E 'Compression|Block size'</pre>
+                </div>
+                <p class="mt-3 text-gray-400">
+                    <span class="font-semibold text-red-400">Seus Parâmetros:</span><br>
+                    Compression: <span class="accent-text">lzo</span><br>
+                    Block size: <span class="accent-text">524288</span>
+                </p>
+            </section>
+
+            <!-- Passo 2: Desmontagem (Unpacking) Segura -->
+            <section>
+                <h2 class="text-2xl font-bold mb-4 text-white">2. Extração com Preservação de Root (JÁ CONCLUÍDO)</h2>
+                <p class="mb-3 text-gray-400">
+                    O comando <code class="font-mono">fakeroot unsquashfs</code> foi concluído com sucesso. Agora o conteúdo está no diretório <code class="font-mono">squashfs-root</code>.
+                </p>
+                <div class="code-block relative p-4 group">
+                    <button class="copy-button absolute top-2 right-2 p-2 rounded-md" onclick="copyCode(this)">
+                        <svg class="w-5 h-5 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-copy-icon><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0a2 2 0 002 2h2m-4 0V3a1 1 0 00-1-1H9a1 1 0 00-1 1v4m-2 2h8a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v2z"></path></svg>
+                        <span class="sr-only">Copiar comando</span>
+                    </button>
+                    <pre class="command-line text-green-300" data-code-target>$ fakeroot unsquashfs -f -d squashfs-root SYSTEM</pre>
+                </div>
+            </section>
+
+            <!-- Passo 3: Modificação do Sistema (Overlay Customizado) -->
+            <section>
+                <h2 class="text-2xl font-bold mb-4 text-white">3. Modificação do Overlay Customizado (Sua Vez)</h2>
+                <p class="mb-3 text-gray-400">
+                    Agora você pode entrar no diretório <code class="font-mono">squashfs-root</code> para adicionar ou editar seus arquivos.
+                </p>
+                <div class="code-block relative p-4 group">
+                    <button class="copy-button absolute top-2 right-2 p-2 rounded-md" onclick="copyCode(this)">
+                        <svg class="w-5 h-5 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-copy-icon><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0a2 2 0 002 2h2m-4 0V3a1 1 0 00-1-1H9a1 1 0 00-1 1v4m-2 2h8a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v2z"></path></svg>
+                        <span class="sr-only">Copiar comando</span>
+                    </button>
+                    <pre class="command-line text-green-300" data-code-target>
+# Entra no diretório
+$ cd squashfs-root
+
+# Realize suas modificações aqui. Exemplo:
+# $ mkdir -p storage/downloads
+# $ cp /caminho/do/meu/script.sh usr/bin/
+
+# Retorna ao diretório principal antes de recompactar
+$ cd ..
+                    </pre>
+                </div>
+                <p class="mt-3 text-gray-400">
+                    <span class="font-semibold text-yellow-400">Ação:</span> Faça suas alterações agora. Quando terminar, volte para o diretório `COMPILAR_EMUELEC` e prossiga para o Passo 4.
+                </p>
+            </section>
+
+            <!-- Passo 4: Recompactação (A Regra de Ouro) -->
+            <section>
+                <h2 class="text-2xl font-bold mb-4 text-white">4. Recompactação (Com Seus Parâmetros Exatos)</h2>
+                <p class="mb-3 text-gray-400">
+                    Comando configurado com **`lzo`** e **`524288`**. Este comando é o mais importante para evitar falhas de inicialização.
+                </p>
+                <div class="code-block relative p-4 group overflow-x-auto">
+                    <button class="copy-button absolute top-2 right-2 p-2 rounded-md" onclick="copyCode(this)">
+                        <svg class="w-5 h-5 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-copy-icon><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0a2 2 0 002 2h2m-4 0V3a1 1 0 00-1-1H9a1 1 0 00-1 1v4m-2 2h8a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v2z"></path></svg>
+                        <span class="sr-only">Copiar comando</span>
+                    </button>
+                    <pre class="command-line text-green-300" data-code-target>
+$ fakeroot mksquashfs squashfs-root SYSTEM \
+    -comp lzo \
+    -b 524288 \
+    -no-xattrs -all-root -noappend
+                    </pre>
+                </div>
+                <p class="mt-3 text-gray-400">
+                    <span class="font-semibold text-white">Observação:</span> Este processo pode levar alguns minutos, dependendo da velocidade do seu sistema e do tamanho do arquivo `SYSTEM`.
+                </p>
+            </section>
+
+            <!-- Passo 5: Implantação e Teste -->
+            <section>
+                <h2 class="text-2xl font-bold mb-4 text-white">5. Implantação e Teste</h2>
+                <p class="mb-3 text-gray-400">
+                    Após a recompactação, você terá o arquivo **SYSTEM_NEW**.
+                </p>
+                <ol class="list-decimal list-inside space-y-2 ml-4 text-gray-400">
+                    <li><span class="font-semibold text-white">Renomeie:</span> Renomeie o arquivo de <code class="font-mono">SYSTEM_NEW</code> para <code class="font-mono">SYSTEM</code>.</li>
+                    <li><span class="font-semibold text-white">Backup:</span> Faça backup do arquivo <code class="font-mono">SYSTEM</code> original no seu dispositivo.</li>
+                    <li><span class="font-semibold text-white">Substitua:</span> Copie o novo arquivo para a partição **BOOT (EMUELEC)** do seu dispositivo.</li>
+                    <li><span class="font-semibold text-white">Teste:</span> Reinicie o EmuELEC.</li>
+                </ol>
+            </section>
+        </div>
+
+        <footer class="mt-12 pt-6 border-t border-gray-700 text-center text-sm text-gray-500">
+            Guia baseado em Engenharia Reversa de Sistemas EmuELEC/LibreELEC.
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * Copia o código do bloco adjacente ao botão clicado.
+         * @param {HTMLElement} button - O elemento do botão que foi clicado.
+         */
+        function copyCode(button) {
+            // Encontra o elemento <pre> que contém o código
+            const codeBlock = button.parentElement.querySelector('[data-code-target]');
+            if (!codeBlock) return;
+
+            // Extrai o texto
+            const rawText = codeBlock.innerText;
+
+            // CRÍTICO: Remove o "$" e o "#" de comentários no início de cada linha, mas mantém o texto dentro das linhas.
+            // O regex /^\s*(\$|\#\s?)/gm busca "$" ou "#" (seguido por espaço opcional) no início da linha (m flag)
+            const textToCopy = rawText.replace(/^\s*(\$|\#\s?)/gm, '').trim();
+
+            try {
+                // Cria uma área de texto temporária para usar o document.execCommand('copy')
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                tempTextArea.style.position = 'fixed'; // Impede a rolagem
+                tempTextArea.style.opacity = '0';
+                document.body.appendChild(tempTextArea);
+                
+                tempTextArea.select();
+                const successful = document.execCommand('copy');
+                
+                document.body.removeChild(tempTextArea);
+
+                if (successful) {
+                    showSuccessFeedback(button);
+                } else {
+                    console.error('Falha ao usar document.execCommand(\'copy\')');
+                }
+
+            } catch (err) {
+                console.error('Erro ao copiar:', err);
+            }
+        }
+
+        /**
+         * Fornece feedback visual de sucesso ao usuário.
+         * @param {HTMLElement} button - O botão para mostrar o feedback.
+         */
+        function showSuccessFeedback(button) {
+            const originalIcon = button.querySelector('[data-copy-icon]');
+            const originalHTML = button.innerHTML;
+
+            // Altera o ícone para um de 'check' temporariamente
+            button.innerHTML = `
+                <svg class="w-5 h-5 copy-success" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span class="sr-only">Comando copiado</span>
+            `;
+            button.classList.add('copy-success');
+
+            // Retorna ao estado original após 2 segundos
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('copy-success');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
